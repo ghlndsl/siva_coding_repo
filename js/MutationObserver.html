@@ -1,0 +1,56 @@
+<!--
+    DOM世界的观察者
+    自带的观察者很多，如onclick, attachEvent, 等，不过他们只是监听用户的行为。
+    特例是propertychange, oninput
+    setter,getter方法, 如下
+    W3C提供的高级变动事件，如
+    DOMAttrModified, DOMNodeInsertedIntoDocument, DOMNodeRemovedFromDocument, DOMSubtreeModified
+    这下好了，无论是你是元素做增删改操作，还是元素的孩子们做增删改操作，还是对它的innerHTML或是属性进行增删改操作，它都提供监听。早期jQuery的Sizzle就是利用过DOMAttrModified清查调缓存的。我们可以在这里查到它们的用法。
+    不过像propertychange这样的东西太重要了，老麻烦setInterval太不意思了。现在onhashchange, oninput都出来了，总有人干这事。时代在招唤！MutationObserver终于应运而生！
+    DOM MutationObserver - reacting to DOM changes without kill browser performance
+ -->
+<script type="text/javascript">
+    Object.defineProperty(document.body, "description", {
+        get: function(){
+            // do something
+            return this.desc;
+        },
+        set: function(val){
+            this.desc = val;
+        }
+    });
+</script>
+<!doctype html>
+<html>
+    <head>
+        <title>mass Framework</title>
+        <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+    </head>
+    <body>
+        <input value="aaa">
+        <script>
+            window.onload = function(){
+                var MutationObserver = window.MutationObserver || window.WebKitMutationObserver || window.MozMutationObserver;
+                var list = document.querySelector('input');
+                var observer = new MutationObserver(function(mutations) {
+                    console.log(mutations)
+                    mutations.forEach(function(record) {
+                        if(record.attributeName == "value"){
+                            console.log(record.target)
+                            console.log(record.oldValue)
+                        }
+                    });
+                });
+                observer.observe(list, {
+                    attributes: true,
+                    childList: true,
+                    characterData: true,
+                    attributeOldValue :true,
+                    attributeFilter:["value"]//只监听value属性,提高性能
+                });
+                list.setAttribute("value","bbb")
+                list.setAttribute("value","ccc")
+            }
+        </script>
+    </body>
+</html>
